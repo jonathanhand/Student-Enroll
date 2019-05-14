@@ -106,12 +106,40 @@ create or replace Package body Enroll as
     v_errors varchar2(1000);
 
     begin
-        check_snum(p_snum, v_errors);
-        check_callnum(p_CallNum, v_errors);
-        --num 1
+        --num1
+        check_snum(p_snum, v_errors); --check valid student number
+        check_callnum(p_CallNum, v_errors); --check valid call number
         if (v_errors is null) then
+            --num2
+                --check enrollments if snum already enrolled in callnum (past or present)
+            --num3
+                --cursor to loop through all of enrollments where snum = student.snum
+                --for each record:
+                    --check schclasses.dept and cnum does not match p_callnum dept and cnum
+                    --if matches, add to v_error message
+            --num4
+            check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
+            --num5
+                --select standing from students, compare to course want to enroll standing (join courses and schclasses)
+            --num6
+                --select standing from students
+                --if standing 3 or 4 then
+                    --check students.major not null
+                    --if major null
+                        --error
+            --num7
+
             check_capacity(p_snum, p_callnum, v_errors);
-            check_15hr(p_snum, p_callNum, v_errors);
+            --num8
+                --if v_errors is null then
+                    --if class capacity full
+                        --check if stunum on waitlist table
+                        --num9
+                            --if not on waitlist with that call num then
+                                --insert into waitlist table
+                                --print stu num is now on wait list
+                            --else
+                                --print you're already waitlisted for that 
             if (v_errors is null) then
                 insert into enrollments (snum, callnum) values (p_snum, p_callnum);
                 dbms_output.put_line('Successfully Enrolled!');
@@ -119,8 +147,8 @@ create or replace Package body Enroll as
             else
                 dbms_output.put_line(v_errors);
             end if;
-        else
-            dbms_output.put_line(v_errors);
+        else --num1: if snum and/or callnum invalid, skip to here
+            dbms_output.put_line(v_errors); --skip rest of program and print errors
         end if;
         exception
         when DUP_VAL_ON_INDEX
