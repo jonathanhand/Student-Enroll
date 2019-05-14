@@ -73,7 +73,8 @@ create or replace Package body Enroll as
     
 
     procedure check_15hr
-        (p_snum varchar2, p_callNum varchar2, p_answer IN OUT varchar2) as 
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type, p_answer IN OUT varchar2) as 
         v_stuStanding number;
         v_courseStanding number;
         v_creditEnrolled number;
@@ -103,7 +104,8 @@ create or replace Package body Enroll as
     end;
 
     procedure doubleEnrollment
-        (p_snum varchar2, p_callNum varchar2, p_error IN OUT varchar2) as
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
         v_enrDept varchar2(10);
         v_enrCnum varchar2(10);
 
@@ -131,7 +133,8 @@ create or replace Package body Enroll as
     end;
 
     procedure repeatEnrollment
-        (p_snum varchar2, p_callnum varchar2, p_error IN OUT varchar2) as
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
         
         cursor cur_enr is
             select s.callNum, e.snum
@@ -147,11 +150,54 @@ create or replace Package body Enroll as
         end loop;
     end;
 
+    --select standing from students, compare to course want to enroll standing 
+    --(join courses and schclasses)
+    procedure standingRequirement
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
+        v_stuStanding number(1);
+        v_courseStanding number(1);
+
+    begin
+        select standing into v_stuStanding 
+        from students
+        where students.snum = p_snum;
+
+        select c.standing into v_courseStanding
+        from courses c, schClasses sch
+        where sch.callnum = p_callNum and sch.Dept = c.Dept and sch.Cnum = c.cNum;
+
+        if v_stuStanding < v_courseStanding then
+            p_error := p_error || 'Student standing too low, ';
+        end if;
+    end;
+
+    procedure undeclaredMajor
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
+        v_stuStanding number(1);
+        v_stuMajor students.Major%type;
+
+    begin
+        select standing into v_stuStanding 
+        from students
+        where students.snum = p_snum;
+
+        select major into v_stuMajor
+        from students
+        where students.snum = p_snum;
+
+        if (v_stuStanding >= 3) then
+            if (v_stuMajor is null) then
+                p_error := p_error || 'Need to declare major to enroll, ';
+            end if;
+        end if;
+
+    end;
+
     procedure AddMe
     (p_snum students.snum%type,
     p_CallNum schClasses.callnum%type) as
-    v_snumValid varchar2(20);
-    v_callValid varchar2(20);
     v_errors varchar2(1000);
 
     begin
@@ -159,7 +205,7 @@ create or replace Package body Enroll as
         check_snum(p_snum, v_errors); --check valid student number
         check_callnum(p_CallNum, v_errors); --check valid call number
         if (v_errors is null) then
-            --TODO: num2
+            --num2
             repeatEnrollment(p_snum, p_callnum, v_errors);
                 --check enrollments if snum already enrolled in callnum (past or present)
             --num3
@@ -170,9 +216,11 @@ create or replace Package body Enroll as
                     --if matches, add to v_error message
             --num4
             check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
-            --TODO: num5
+            --num5
                 --select standing from students, compare to course want to enroll standing (join courses and schclasses)
+            standingRequirement(p_snum, p_callNum, v_errors);
             --TODO: num6
+            undeclaredMajor(p_snum, p_callNum, v_errors);
                 --select standing from students
                 --if standing 3 or 4 then
                     --check students.major not null
@@ -207,7 +255,7 @@ end enroll;
 show errors;
 
 begin
-    Enroll.addme(101, 10110);
+    Enroll.addme(105, 10110);
     Enroll.addme(106, 10115);
 
 end;
