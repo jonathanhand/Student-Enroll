@@ -102,7 +102,7 @@ create or replace Package body Enroll as
         end if;
     end;
 
-    procedure repeatEnrollment
+    procedure doubleEnrollment
         (p_snum varchar2, p_callNum varchar2, p_error IN OUT varchar2) as
         v_enrDept varchar2(10);
         v_enrCnum varchar2(10);
@@ -121,14 +121,31 @@ create or replace Package body Enroll as
         from schClasses
         where callnum = p_callNum;
 
+
         for eachClass in cur_class loop
             if (v_enrDept = eachClass.dept and v_enrCnum = eachClass.Cnum) then
-                p_error := 'Enrolled in another section already, ';
+                p_error := p_error || 'Enrolled in another section already, ';
+                exit;
             end if;
-            
         end loop;
     end;
 
+    procedure repeatEnrollment
+        (p_snum varchar2, p_callnum varchar2, p_error IN OUT varchar2) as
+        
+        cursor cur_enr is
+            select s.callNum, e.snum
+            from schClasses s, enrollments e
+            where e.snum = p_snum and s.callnum = e.callNum;
+
+    begin
+        for eachEnr in cur_enr loop
+            if (eachEnr.callNum = p_callNum) then
+                p_error := p_error || 'Repeat Enrollment, ';
+                exit;
+            end if;
+        end loop;
+    end;
 
     procedure AddMe
     (p_snum students.snum%type,
@@ -142,28 +159,28 @@ create or replace Package body Enroll as
         check_snum(p_snum, v_errors); --check valid student number
         check_callnum(p_CallNum, v_errors); --check valid call number
         if (v_errors is null) then
-            --num2
+            --TODO: num2
+            repeatEnrollment(p_snum, p_callnum, v_errors);
                 --check enrollments if snum already enrolled in callnum (past or present)
             --num3
-            repeatEnrollment(p_snum, p_callNum, v_errors);
+            doubleEnrollment(p_snum, p_callNum, v_errors);
                 --cursor to loop through all of enrollments where snum = student.snum
                 --for each record:
                     --check schclasses.dept and cnum does not match p_callnum dept and cnum
                     --if matches, add to v_error message
             --num4
             check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
-            --num5
+            --TODO: num5
                 --select standing from students, compare to course want to enroll standing (join courses and schclasses)
-            --num6
+            --TODO: num6
                 --select standing from students
                 --if standing 3 or 4 then
                     --check students.major not null
                     --if major null
                         --error
-            --num7
---dbms_output.put_line(v_errors);
+            --TODO: num7
             check_capacity(p_snum, p_callnum, v_errors);
-            --num8
+            --TODO: num8
                 --if v_errors is null then
                     --if class capacity full
                         --check if stunum on waitlist table
@@ -183,9 +200,6 @@ create or replace Package body Enroll as
         else --num1: if snum and/or callnum invalid, skip to here
             dbms_output.put_line(v_errors); --skip rest of program and print errors
         end if;
-        exception
-        when DUP_VAL_ON_INDEX
-        then dbms_output.put_line('Already Enrolled!');
     end;
     
 end enroll;
@@ -193,8 +207,8 @@ end enroll;
 show errors;
 
 begin
-    Enroll.addme(104, 10110);
-    Enroll.addme(101, 10115);
+    Enroll.addme(101, 10110);
+    Enroll.addme(106, 10115);
 
 end;
 /
