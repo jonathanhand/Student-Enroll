@@ -1,0 +1,215 @@
+SQL> 
+SQL> set serveroutput on
+SQL> set echo on
+SQL> 
+SQL> --Jonathan Hand
+SQL> --IS 480
+SQL> --Final Project
+SQL> 
+SQL> create or replace Package Enroll as
+  2  --just addme and drop me in spec
+  3  --procedure DropMe
+  4  
+  5  	 procedure AddMe
+  6  	     (p_snum students.snum%type,
+  7  	     p_CallNum schClasses.callnum%type);
+  8  
+  9  end Enroll;
+ 10  /
+
+Package created.
+
+SQL> show errors;
+No errors.
+SQL> create or replace Package body Enroll as
+  2  	 procedure check_snum
+  3  	     (p_snum students.snum%type,
+  4  	     p_answer IN OUT varchar2) as --out keyword to let know being passed out of procedure
+  5  	     v_count number;
+  6  
+  7  	 begin
+  8  	     select count(snum) into v_count
+  9  	     from students
+ 10  	     where snum = p_snum;
+ 11  	     if v_count = 0 then
+ 12  		 p_answer:= p_answer || 'Invalid Student Number, ';
+ 13  
+ 14  	     end if;
+ 15  	 end;
+ 16  
+ 17  	 PROCEDURE check_CALLNUM
+ 18  	     (p_callnum schclasses.callnum%type,
+ 19  	     p_answer IN OUT varchar2) as
+ 20  	     v_count number;
+ 21  
+ 22  	 begin
+ 23  	     select count(*) into v_count
+ 24  	     from schclasses
+ 25  	     where callnum = p_callnum;
+ 26  	     if v_count = 0 then
+ 27  		 p_answer := p_answer || 'Invalid Call Number, ';
+ 28  	     end if;
+ 29  	 end;
+ 30  
+ 31  
+ 32  	 procedure check_capacity
+ 33  	     (p_snum students.snum%type,
+ 34  	     p_callnum schClasses.callnum%type,
+ 35  	     p_answer IN OUT varchar2) AS
+ 36  	     v_capacity number(3);
+ 37  	     v_reserved number(3);
+ 38  
+ 39  	 begin
+ 40  	     select sch.capacity into v_capacity
+ 41  	     from schClasses sch
+ 42  	     where p_callnum = sch.callnum;
+ 43  
+ 44  	     select count(e.callnum) into v_reserved
+ 45  	     from enrollments e, schClasses sch
+ 46  	     where sch.callnum = e.callnum and e.callnum = p_callnum;
+ 47  
+ 48  	     if (v_capacity <= v_reserved) then
+ 49  		 p_answer := p_answer || 'Class too full, ';
+ 50  	     end if;
+ 51  	 end;
+ 52  
+ 53  
+ 54  	 procedure check_15hr
+ 55  	     (p_snum varchar2, p_callNum varchar2, p_answer IN OUT varchar2) as
+ 56  	     v_stuStanding number;
+ 57  	     v_courseStanding number;
+ 58  	     v_creditEnrolled number;
+ 59  	     v_creditWant number;
+ 60  	 begin
+ 61  	 dbms_output.put_line('check15: ' || p_answer);
+ 62  	 /*
+ 63  	     select standing into v_stuStanding
+ 64  	     from students
+ 65  	     where sNum = p_snum;
+ 66  
+ 67  	     select standing into v_courseStanding
+ 68  	     from schclasses s, courses c
+ 69  	     where p_callNum = s.callnum and c.dept=s.dept and c.cnum = s.cnum;
+ 70  */
+ 71  	     select nvl(sum(c.CRHR), 0) into v_creditEnrolled
+ 72  	     from courses c, enrollments e, schclasses s
+ 73  	     where c.dept=s.dept and c.cnum = s.cnum and e.callnum = s.callnum and e.snum = p_snum;
+ 74  
+ 75  	     select c.crhr into v_creditWant
+ 76  	     from courses c, schclasses s
+ 77  	     where p_callnum = s.callnum and c.dept=s.dept and c.cnum = s.cnum;
+ 78  
+ 79  	     if (v_creditEnrolled + v_creditWant) > 15 then
+ 80  		 p_answer := p_answer || 'Too many units to register, ';
+ 81  	     end if;
+ 82  	 end;
+ 83  
+ 84  	 procedure repeatEnrollment
+ 85  	     (p_snum varchar2, p_callNum varchar2, p_error IN OUT varchar2) as
+ 86  	     v_enrDept varchar2(10);
+ 87  	     v_enrCnum varchar2(10);
+ 88  
+ 89  	     cursor cur_class is
+ 90  		 select s.callNum, s.dept, s.cnum, s.section
+ 91  		 from schClasses s, enrollments e
+ 92  		 where e.snum = p_snum and s.callnum = e.callnum;
+ 93  
+ 94  	 begin
+ 95  	     select dept into v_enrDept
+ 96  	     from schClasses
+ 97  	     where callnum = p_callNum;
+ 98  
+ 99  	     select Cnum into v_enrCnum
+100  	     from schClasses
+101  	     where callnum = p_callNum;
+102  
+103  	     for eachClass in cur_class loop
+104  		 if (v_enrDept = eachClass.dept and v_enrCnum = eachClass.Cnum) then
+105  		     p_error := 'Enrolled in another section already, ';
+106  		 end if;
+107  
+108  	     end loop;
+109  	 end;
+110  
+111  
+112  	 procedure AddMe
+113  	 (p_snum students.snum%type,
+114  	 p_CallNum schClasses.callnum%type) as
+115  	 v_snumValid varchar2(20);
+116  	 v_callValid varchar2(20);
+117  	 v_errors varchar2(1000);
+118  
+119  	 begin
+120  	     --num1
+121  	     check_snum(p_snum, v_errors); --check valid student number
+122  	     check_callnum(p_CallNum, v_errors); --check valid call number
+123  	     if (v_errors is null) then
+124  		 --num2
+125  		     --check enrollments if snum already enrolled in callnum (past or present)
+126  		 --num3
+127  		 repeatEnrollment(p_snum, p_callNum, v_errors);
+128  		     --cursor to loop through all of enrollments where snum = student.snum
+129  		     --for each record:
+130  			 --check schclasses.dept and cnum does not match p_callnum dept and cnum
+131  			 --if matches, add to v_error message
+132  		 --num4
+133  		 check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
+134  		 --num5
+135  		     --select standing from students, compare to course want to enroll standing (join courses and schclasses)
+136  		 --num6
+137  		     --select standing from students
+138  		     --if standing 3 or 4 then
+139  			 --check students.major not null
+140  			 --if major null
+141  			     --error
+142  		 --num7
+143  --dbms_output.put_line(v_errors);
+144  		 check_capacity(p_snum, p_callnum, v_errors);
+145  		 --num8
+146  		     --if v_errors is null then
+147  			 --if class capacity full
+148  			     --check if stunum on waitlist table
+149  			     --num9
+150  				 --if not on waitlist with that call num then
+151  				     --insert into waitlist table
+152  				     --print stu num is now on wait list
+153  				 --else
+154  				     --print you're already waitlisted for that
+155  		 if (v_errors is null) then
+156  		     insert into enrollments (snum, callnum) values (p_snum, p_callnum);
+157  		     dbms_output.put_line('Successfully Enrolled!');
+158  		     commit;
+159  		 else
+160  		     dbms_output.put_line(v_errors);
+161  		 end if;
+162  	     else --num1: if snum and/or callnum invalid, skip to here
+163  		 dbms_output.put_line(v_errors); --skip rest of program and print errors
+164  	     end if;
+165  	     exception
+166  	     when DUP_VAL_ON_INDEX
+167  	     then dbms_output.put_line('Already Enrolled!');
+168  	 end;
+169  
+170  end enroll;
+171  /
+
+Package body created.
+
+SQL> show errors;
+No errors.
+SQL> 
+SQL> begin
+  2  	 Enroll.addme(104, 10110);
+  3  	 Enroll.addme(101, 10115);
+  4  
+  5  end;
+  6  /
+check15:                                                                        
+Successfully Enrolled!                                                          
+check15: Enrolled in another section already,                                   
+Enrolled in another section already,                                            
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> spool off;

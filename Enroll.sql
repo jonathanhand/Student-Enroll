@@ -1,11 +1,13 @@
 --start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\enroll.sql'
-spool 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\enroll.sql'
+spool 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\enroll.txt'
+
 set serveroutput on
 set echo on
 
 --Jonathan Hand
 --IS 480
 --Final Project
+
 create or replace Package Enroll as
 --just addme and drop me in spec
 --procedure DropMe
@@ -20,7 +22,7 @@ show errors;
 create or replace Package body Enroll as
     procedure check_snum
         (p_snum students.snum%type,
-        p_answer OUT varchar2) as --out keyword to let know being passed out of procedure
+        p_answer IN OUT varchar2) as --out keyword to let know being passed out of procedure
         v_count number;
 
     begin
@@ -35,7 +37,7 @@ create or replace Package body Enroll as
 
     PROCEDURE check_CALLNUM
         (p_callnum schclasses.callnum%type,
-        p_answer OUT varchar2) as
+        p_answer IN OUT varchar2) as
         v_count number;
 
     begin
@@ -51,7 +53,7 @@ create or replace Package body Enroll as
     procedure check_capacity
         (p_snum students.snum%type,
         p_callnum schClasses.callnum%type,
-        p_answer OUT varchar2) AS
+        p_answer IN OUT varchar2) AS
         v_capacity number(3);
         v_reserved number(3);
 
@@ -71,12 +73,14 @@ create or replace Package body Enroll as
     
 
     procedure check_15hr
-        (p_snum varchar2, p_callNum varchar2, p_answer OUT varchar2) as 
+        (p_snum varchar2, p_callNum varchar2, p_answer IN OUT varchar2) as 
         v_stuStanding number;
         v_courseStanding number;
         v_creditEnrolled number;
         v_creditWant number;
     begin
+    /*
+    --this is for comparing standing TODO: Take out later
         select standing into v_stuStanding
         from students
         where sNum = p_snum;
@@ -84,7 +88,7 @@ create or replace Package body Enroll as
         select standing into v_courseStanding
         from schclasses s, courses c
         where p_callNum = s.callnum and c.dept=s.dept and c.cnum = s.cnum;
-
+*/
         select nvl(sum(c.CRHR), 0) into v_creditEnrolled
         from courses c, enrollments e, schclasses s
         where c.dept=s.dept and c.cnum = s.cnum and e.callnum = s.callnum and e.snum = p_snum;
@@ -97,6 +101,34 @@ create or replace Package body Enroll as
             p_answer := p_answer || 'Too many units to register, ';
         end if;
     end;
+
+    procedure repeatEnrollment
+        (p_snum varchar2, p_callNum varchar2, p_error IN OUT varchar2) as
+        v_enrDept varchar2(10);
+        v_enrCnum varchar2(10);
+
+        cursor cur_class is
+            select s.callNum, s.dept, s.cnum, s.section
+            from schClasses s, enrollments e
+            where e.snum = p_snum and s.callnum = e.callnum;
+        
+    begin
+        select dept into v_enrDept
+        from schClasses
+        where callnum = p_callNum;
+
+        select Cnum into v_enrCnum
+        from schClasses
+        where callnum = p_callNum;
+
+        for eachClass in cur_class loop
+            if (v_enrDept = eachClass.dept and v_enrCnum = eachClass.Cnum) then
+                p_error := 'Enrolled in another section already, ';
+            end if;
+            
+        end loop;
+    end;
+
 
     procedure AddMe
     (p_snum students.snum%type,
@@ -113,6 +145,7 @@ create or replace Package body Enroll as
             --num2
                 --check enrollments if snum already enrolled in callnum (past or present)
             --num3
+            repeatEnrollment(p_snum, p_callNum, v_errors);
                 --cursor to loop through all of enrollments where snum = student.snum
                 --for each record:
                     --check schclasses.dept and cnum does not match p_callnum dept and cnum
@@ -128,7 +161,7 @@ create or replace Package body Enroll as
                     --if major null
                         --error
             --num7
-
+--dbms_output.put_line(v_errors);
             check_capacity(p_snum, p_callnum, v_errors);
             --num8
                 --if v_errors is null then
@@ -160,11 +193,9 @@ end enroll;
 show errors;
 
 begin
-    Enroll.addme(101, 10110);
-    Enroll.addme(105, 10160);
-    Enroll.addme(104, 12222);
-    Enroll.addme(103, 10140);
-    Enroll.addme(106, 10160);
+    Enroll.addme(104, 10110);
+    Enroll.addme(101, 10115);
+
 end;
 /
 
