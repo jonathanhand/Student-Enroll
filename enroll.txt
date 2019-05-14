@@ -69,7 +69,7 @@ SQL> create or replace Package body Enroll as
  46  	     where sch.callnum = e.callnum and e.callnum = p_callnum;
  47  
  48  	     if (v_capacity <= v_reserved) then
- 49  		 p_answer := p_answer || 'Class too full, ';
+ 49  		 p_answer := p_answer || 'Class is full, ';
  50  	     end if;
  51  	 end;
  52  
@@ -221,7 +221,7 @@ SQL> create or replace Package body Enroll as
 198  		 --num5
 199  		     --select standing from students, compare to course want to enroll standing (join courses and schclasses)
 200  		 standingRequirement(p_snum, p_callNum, v_errors);
-201  		 --TODO: num6
+201  		 --num6
 202  		 undeclaredMajor(p_snum, p_callNum, v_errors);
 203  		     --select standing from students
 204  		     --if standing 3 or 4 then
@@ -261,15 +261,13 @@ SQL> show errors;
 No errors.
 SQL> 
 SQL> begin
-  2  	 Enroll.addme(105, 10110);
+  2  	 Enroll.addme(110, 10110);
   3  	 Enroll.addme(106, 10115);
   4  
   5  end;
   6  /
-Repeat Enrollment, Enrolled in another section already, Student standing too    
-low,                                                                            
-Repeat Enrollment, Enrolled in another section already, Need to declare major to
-enroll,                                                                         
+Class is full,                                                                  
+Enrolled in another section already,                                            
 
 PL/SQL procedure successfully completed.
 

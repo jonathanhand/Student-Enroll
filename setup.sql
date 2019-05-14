@@ -37,6 +37,15 @@ insert into students values ('103','Cindy',3,'IS',2.5,3.5);
 insert into students values ('104','David',2,'FIN',3.3,3.0);
 insert into students values ('105','Ellen',1,null,2.8,null);
 insert into students values ('106','Frank',3,'MKT',3.1,2.9);
+insert into students values ('107','Cindy',3,'IS',2.5,3.5);
+insert into students values ('108','Frank',3,'IS',2.5,3.5);
+insert into students values ('109','Betty',3,'MKT',2.5,3.5);
+insert into students values ('110','Cindy',3,'IS',2.5,3.5);
+insert into students values ('111','Frank',3,null,2.5,3.5);
+insert into students values ('112','Cindy',3,'FIN',2.5,3.5);
+insert into students values ('113','Frank',3,'IS',2.5,3.5);
+insert into students values ('114','David',3,null,2.5,3.5);
+insert into students values ('115','David',3,'IS',2.5,3.5);
 
 create table COURSES
 	(dept varchar2(3) constraint fk_courses_dept references majors(major),
@@ -67,9 +76,9 @@ alter table schclasses
 	add constraint fk_schclasses_dept_cnum foreign key 
 	(dept, cnum) references courses (dept,cnum);
 
-insert into schclasses values (10110,2014,'Fa','IS','300',1,45);
+insert into schclasses values (10110,2014,'Fa','IS','300',1,5);
 insert into schclasses values (10115,2014,'Fa','IS','300',2,118);
-insert into schclasses values (10120,2014,'Fa','IS','300',3,35);
+insert into schclasses values (10120,2014,'Fa','IS','300',3,5);
 insert into schclasses values (10125,2014,'Fa','IS','301',1,35);
 insert into schclasses values (10130,2014,'Fa','IS','301',2,35);
 insert into schclasses values (10135,2014,'Fa','IS','310',1,35);
@@ -106,10 +115,22 @@ create table ENROLLMENTS (
 	primary key (snum, callnum));
 
 insert into enrollments values (101,10110,'A');
-insert into enrollments values (102,10110,'B');
+insert into enrollments values (102,10110,null);
 insert into enrollments values (103,10120,'A');
 insert into enrollments values (101,10125,null);
 insert into enrollments values (102,10130,null);
+insert into enrollments values (104,10110,null);
+insert into enrollments values (105,10110,null);
+insert into enrollments values (106,10110,'W');
+insert into enrollments values (107,10110,null);
+insert into enrollments values (108,10110,null);
+insert into enrollments values (101,10120,null);
+insert into enrollments values (102,10120,null);
+insert into enrollments values (105,10120,null);
+insert into enrollments values (104,10120,null);
+insert into enrollments values (106,10120,null);
+insert into enrollments values (107,10120,'B');
+insert into enrollments values (108,10120,'C');
 
 commit;
 

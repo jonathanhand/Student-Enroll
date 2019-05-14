@@ -67,7 +67,7 @@ create or replace Package body Enroll as
         where sch.callnum = e.callnum and e.callnum = p_callnum;
 
         if (v_capacity <= v_reserved) then
-            p_answer := p_answer || 'Class too full, ';
+            p_answer := p_answer || 'Class is full, ';
         end if;
     end;
     
@@ -219,7 +219,7 @@ create or replace Package body Enroll as
             --num5
                 --select standing from students, compare to course want to enroll standing (join courses and schclasses)
             standingRequirement(p_snum, p_callNum, v_errors);
-            --TODO: num6
+            --num6
             undeclaredMajor(p_snum, p_callNum, v_errors);
                 --select standing from students
                 --if standing 3 or 4 then
@@ -255,7 +255,7 @@ end enroll;
 show errors;
 
 begin
-    Enroll.addme(105, 10110);
+    Enroll.addme(110, 10110);
     Enroll.addme(106, 10115);
 
 end;
