@@ -14,7 +14,8 @@ create or replace Package Enroll as
 
     procedure AddMe
         (p_snum students.snum%type,
-        p_CallNum schClasses.callnum%type);
+        p_CallNum schClasses.callnum%type,
+        p_errorMsg OUT varchar2);
     procedure DropMe
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type);
@@ -238,7 +239,8 @@ create or replace Package body Enroll as
 ---------------------------ADD ME MAIN---------------------------------------------------
     procedure AddMe
     (p_snum students.snum%type,
-    p_CallNum schClasses.callnum%type) as
+    p_CallNum schClasses.callnum%type,
+    p_errorMsg OUT varchar2) as
     v_errors varchar2(1000);
     v_full boolean;
     v_waitlisted boolean;
@@ -338,6 +340,42 @@ create or replace Package body Enroll as
         p_errors := p_errors || 'Grade already inputted cannot drop, ';
         end if;
     end;
+
+    procedure dropCourse
+        (p_snum students.snum%type,
+        p_callnum schClasses.callnum%type,
+        p_errors IN OUT varchar2) as 
+        v_waitListNum number(3);
+        v_addError varchar2(1000);
+
+            cursor cur_waitlist is
+            select w.snum, w.callnum, waitlistTime
+            from waitlist w
+            where w.callnum = p_callnum
+            order by waitlistTime asc;
+
+    begin
+        --update enrollments
+        --set grade = 'W'
+        --where snum = p_snum and callnum = p_callnum;
+        --dbms_output.put_line('grade updated');
+
+        select count(snum) into v_waitlistNum
+        from waitlist
+        where callnum = p_callnum;
+        dbms_output.put_line('waitlist count for course is ' || v_waitListNum);
+
+        if (v_waitlistNum > 0) then
+            for student in cur_waitList loop
+                --v_addError := null;
+                dbms_output.put_line('trying to add... ' || student.snum || ' ' || student.callnum);
+                --addme(student.snum,student.callnum, v_addError);
+               -- if (v_addError is null) then
+                  -- exit; 
+                --end if;
+            end loop;
+        end if;
+    end;
 ---------------------------DROP ME MAIN--------------------------------------------
     procedure DropMe
         (p_snum students.snum%type,
@@ -354,7 +392,16 @@ create or replace Package body Enroll as
             if (v_errors is null) then --checks to make sure was actually enrolled in course
                 --num3
                 alreadyGraded(p_snum, p_callnum, v_errors);
+                if (v_errors is null) then
+                    dropCourse(p_snum, p_callnum, v_errors);
+                else
+                    dbms_output.put_line(v_errors);
+                end if;
+            else
+                dbms_output.put_line(v_errors);
             end if;
+        else
+            dbms_output.put_line(v_errors);
         end if;
     end;
     
@@ -363,9 +410,11 @@ end enroll;
 show errors;
 
 begin
-    Enroll.dropme(101, 10110);
+    Enroll.dropme(107, 10110);
+    --update enrollments set grade = null where snum = 107 and callnum = 10110;
 
 end;
 /
 
 spool off;
+--start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\enroll.sql'

@@ -11,6 +11,7 @@ drop table schclasses;
 drop table courses;
 drop table students;
 drop table majors;
+drop table waitlist;
 
 -----
 -----
@@ -122,9 +123,9 @@ insert into enrollments values (101,10125,null);
 insert into enrollments values (102,10130,null);
 insert into enrollments values (104,10110,null);
 insert into enrollments values (105,10110,null);
-insert into enrollments values (106,10110,'W');
+insert into enrollments values (106,10110,'B');
 insert into enrollments values (107,10110,null);
-insert into enrollments values (108,10110,null);
+insert into enrollments values (108,10110,'W');
 insert into enrollments values (103,10125,null);
 insert into enrollments values (104,10125,null);
 insert into enrollments values (105,10130,null);
@@ -138,7 +139,9 @@ create table WAITLIST (
 	callnum number(5) constraint fk_waitlist_callnum references schclasses(callnum),
 	waitlistTime timestamp,
 	primary key (snum, callnum));
-insert into WAITLIST values (109, 10110, (select current_timestamp from dual));
+insert into WAITLIST values (109, 10110, '14-MAY-19 06.08.52.332000 PM');
+insert into WAITLIST values (102, 10110, '14-MAY-19 07.15.27.830000 PM');
+insert into WAITLIST values (110, 10110, '14-MAY-19 06.24.17.298000 PM');
 
 commit;
 

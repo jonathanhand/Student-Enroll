@@ -12,13 +12,14 @@ SQL> create or replace Package Enroll as
   4  
   5  	 procedure AddMe
   6  	     (p_snum students.snum%type,
-  7  	     p_CallNum schClasses.callnum%type);
-  8  	 procedure DropMe
-  9  	     (p_snum students.snum%type,
- 10  	     p_CallNum schClasses.callnum%type);
- 11  
- 12  end Enroll;
- 13  /
+  7  	     p_CallNum schClasses.callnum%type,
+  8  	     p_errorMsg OUT varchar2);
+  9  	 procedure DropMe
+ 10  	     (p_snum students.snum%type,
+ 11  	     p_CallNum schClasses.callnum%type);
+ 12  
+ 13  end Enroll;
+ 14  /
 
 Package created.
 
@@ -240,129 +241,174 @@ SQL> create or replace Package body Enroll as
 214  ---------------------------ADD ME MAIN---------------------------------------------------
 215  	 procedure AddMe
 216  	 (p_snum students.snum%type,
-217  	 p_CallNum schClasses.callnum%type) as
-218  	 v_errors varchar2(1000);
-219  	 v_full boolean;
-220  	 v_waitlisted boolean;
-221  
-222  	 begin
-223  	     --num1
-224  	     check_snum(p_snum, v_errors); --check valid student number
-225  	     check_callnum(p_CallNum, v_errors); --check valid call number
-226  	     if (v_errors is null) then
-227  		 --num2
-228  		 repeatEnrollment(p_snum, p_callnum, v_errors);
-229  		     --check enrollments if snum already enrolled in callnum (past or present)
-230  		 --num3
-231  		 doubleEnrollment(p_snum, p_callNum, v_errors);
-232  		     --cursor to loop through all of enrollments where snum = student.snum
-233  		     --for each record:
-234  			 --check schclasses.dept and cnum does not match p_callnum dept and cnum
-235  			 --if matches, add to v_error message
-236  		 --num4
-237  		 check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
-238  		 --num5
-239  		     --select standing from students, compare to course want to enroll standing (join courses and schclasses)
-240  		 standingRequirement(p_snum, p_callNum, v_errors);
-241  		 --num6
-242  		 undeclaredMajor(p_snum, p_callNum, v_errors);
-243  		     --select standing from students
-244  		     --if standing 3 or 4 then
-245  			 --check students.major not null
-246  			 --if major null
-247  			     --error
-248  		 --num7
-249  		 --if (v_errors is null) then
-250  
+217  	 p_CallNum schClasses.callnum%type,
+218  	 p_errorMsg OUT varchar2) as
+219  	 v_errors varchar2(1000);
+220  	 v_full boolean;
+221  	 v_waitlisted boolean;
+222  
+223  	 begin
+224  	     --num1
+225  	     check_snum(p_snum, v_errors); --check valid student number
+226  	     check_callnum(p_CallNum, v_errors); --check valid call number
+227  	     if (v_errors is null) then
+228  		 --num2
+229  		 repeatEnrollment(p_snum, p_callnum, v_errors);
+230  		     --check enrollments if snum already enrolled in callnum (past or present)
+231  		 --num3
+232  		 doubleEnrollment(p_snum, p_callNum, v_errors);
+233  		     --cursor to loop through all of enrollments where snum = student.snum
+234  		     --for each record:
+235  			 --check schclasses.dept and cnum does not match p_callnum dept and cnum
+236  			 --if matches, add to v_error message
+237  		 --num4
+238  		 check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
+239  		 --num5
+240  		     --select standing from students, compare to course want to enroll standing (join courses and schclasses)
+241  		 standingRequirement(p_snum, p_callNum, v_errors);
+242  		 --num6
+243  		 undeclaredMajor(p_snum, p_callNum, v_errors);
+244  		     --select standing from students
+245  		     --if standing 3 or 4 then
+246  			 --check students.major not null
+247  			 --if major null
+248  			     --error
+249  		 --num7
+250  		 --if (v_errors is null) then
 251  
-252  		 --TODO: num8
-253  
-254  			     --check if stunum on waitlist table
-255  			     --num9
-256  				 --if not on waitlist with that call num then
-257  				     --insert into waitlist table
-258  				     --print stu num is now on wait list
-259  				 --else
-260  				     --print you're already waitlisted for that
-261  
-262  		 --end if;
-263  		-- if (v_errors is not null) then
-264  		     --checkWaitlist
-265  
-266  		 if (v_errors is null) then
-267  		 check_capacity(p_snum, p_callnum, v_errors, v_full);
-268  		     if(v_full = true) then
-269  			 --num8
-270  			 checkWaitlist(p_snum, p_callnum, v_errors, v_waitlisted);
-271  			 if (v_waitlisted = false) then
-272  			     addToWaitList(p_snum, p_callNum);
-273  			 end if;
-274  		     else
-275  			 insert into enrollments (snum, callnum) values (p_snum, p_callnum);
-276  			 dbms_output.put_line('Successfully Enrolled!');
-277  			 commit;
-278  		     end if;
-279  		 else
-280  		     dbms_output.put_line(v_errors);
-281  		 end if;
-282  	     else --num1: if snum and/or callnum invalid, skip to here
-283  		 dbms_output.put_line(v_errors); --skip rest of program and print errors
-284  	     end if;
-285  	 end;
-286  ----------------------DROP ME PROCEDURES-----------------------------------------------------------
-287  	 procedure notEnrolled
-288  	     (p_snum students.snum%type,
-289  	     p_callnum schClasses.callnum%type,
-290  	     p_errors IN OUT varchar2) as
-291  	     v_enrollmentCount number(1);
-292  	 begin
-293  	     select count(snum) into v_enrollmentCount
-294  	     from enrollments
-295  	     where snum = p_snum and callNum = p_callNum; --add to not count 'W', because means dropped, so they can retake
-296  
-297  	     if (v_enrollmentCount != 1) then
-298  		 p_errors := p_errors || 'Not currently enrolled in that course, ';
-299  	     end if;
-300  	 end;
-301  
-302  	 procedure alreadyGraded
-303  	     (p_snum students.snum%type,
-304  	     p_callnum schClasses.callnum%type,
-305  	     p_errors IN OUT varchar2) as
-306  	     v_grade varchar(1);
-307  
-308  	 begin
-309  	     select grade into v_grade
-310  	     from enrollments
-311  	     where snum = p_snum and callnum = p_callnum;
-312  
-313  	     if (v_grade is not null) then
-314  	     p_errors := p_errors || 'Grade already inputted cannot drop, ';
-315  	     dbms_output.put_line('already graded');
+252  
+253  		 --TODO: num8
+254  
+255  			     --check if stunum on waitlist table
+256  			     --num9
+257  				 --if not on waitlist with that call num then
+258  				     --insert into waitlist table
+259  				     --print stu num is now on wait list
+260  				 --else
+261  				     --print you're already waitlisted for that
+262  
+263  		 --end if;
+264  		-- if (v_errors is not null) then
+265  		     --checkWaitlist
+266  
+267  		 if (v_errors is null) then
+268  		 check_capacity(p_snum, p_callnum, v_errors, v_full);
+269  		     if(v_full = true) then
+270  			 --num8
+271  			 checkWaitlist(p_snum, p_callnum, v_errors, v_waitlisted);
+272  			 if (v_waitlisted = false) then
+273  			     addToWaitList(p_snum, p_callNum);
+274  			 end if;
+275  		     else
+276  			 insert into enrollments (snum, callnum) values (p_snum, p_callnum);
+277  			 dbms_output.put_line('Successfully Enrolled!');
+278  			 commit;
+279  		     end if;
+280  		 else
+281  		     dbms_output.put_line(v_errors);
+282  		 end if;
+283  	     else --num1: if snum and/or callnum invalid, skip to here
+284  		 dbms_output.put_line(v_errors); --skip rest of program and print errors
+285  	     end if;
+286  	 end;
+287  ----------------------DROP ME PROCEDURES-----------------------------------------------------------
+288  	 procedure notEnrolled
+289  	     (p_snum students.snum%type,
+290  	     p_callnum schClasses.callnum%type,
+291  	     p_errors IN OUT varchar2) as
+292  	     v_enrollmentCount number(1);
+293  	 begin
+294  	     select count(snum) into v_enrollmentCount
+295  	     from enrollments
+296  	     where snum = p_snum and callNum = p_callNum; --add to not count 'W', because means dropped, so they can retake
+297  
+298  	     if (v_enrollmentCount != 1) then
+299  		 p_errors := p_errors || 'Not currently enrolled in that course, ';
+300  	     end if;
+301  	 end;
+302  
+303  	 procedure alreadyGraded
+304  	     (p_snum students.snum%type,
+305  	     p_callnum schClasses.callnum%type,
+306  	     p_errors IN OUT varchar2) as
+307  	     v_grade varchar(1);
+308  
+309  	 begin
+310  	     select grade into v_grade
+311  	     from enrollments
+312  	     where snum = p_snum and callnum = p_callnum;
+313  
+314  	     if (v_grade is not null) then
+315  	     p_errors := p_errors || 'Grade already inputted cannot drop, ';
 316  	     end if;
 317  	 end;
-318  ---------------------------DROP ME MAIN--------------------------------------------
-319  	 procedure DropMe
+318  
+319  	 procedure dropCourse
 320  	     (p_snum students.snum%type,
-321  	     p_CallNum schClasses.callnum%type) as
-322  	     v_errors varchar2(1000);
-323  
-324  	 begin
-325  	     --num1
-326  	     check_snum(p_snum, v_errors); --check valid student number
-327  	     check_callnum(p_CallNum, v_errors); --check valid call number
-328  	     if (v_errors is null) then
-329  	     --num2
-330  		 notEnrolled(p_snum, p_callNum, v_errors);
-331  		 if (v_errors is null) then --checks to make sure was actually enrolled in course
-332  		     --num3
-333  		     alreadyGraded(p_snum, p_callnum, v_errors);
-334  		 end if;
-335  	     end if;
-336  	 end;
+321  	     p_callnum schClasses.callnum%type,
+322  	     p_errors IN OUT varchar2) as
+323  	     v_waitListNum number(3);
+324  	     v_addError varchar2(1000);
+325  
+326  		 cursor cur_waitlist is
+327  		 select w.snum, w.callnum, waitlistTime
+328  		 from waitlist w
+329  		 where w.callnum = p_callnum
+330  		 order by waitlistTime asc;
+331  
+332  	 begin
+333  	     --update enrollments
+334  	     --set grade = 'W'
+335  	     --where snum = p_snum and callnum = p_callnum;
+336  	     --dbms_output.put_line('grade updated');
 337  
-338  end enroll;
-339  /
+338  	     select count(snum) into v_waitlistNum
+339  	     from waitlist
+340  	     where callnum = p_callnum;
+341  	     dbms_output.put_line('waitlist count for course is ' || v_waitListNum);
+342  
+343  	     if (v_waitlistNum > 0) then
+344  		 for student in cur_waitList loop
+345  		     --v_addError := null;
+346  		     dbms_output.put_line('trying to add... ' || student.snum || ' ' || student.callnum);
+347  		     --addme(student.snum,student.callnum, v_addError);
+348  		    -- if (v_addError is null) then
+349  		       -- exit;
+350  		     --end if;
+351  		 end loop;
+352  	     end if;
+353  	 end;
+354  ---------------------------DROP ME MAIN--------------------------------------------
+355  	 procedure DropMe
+356  	     (p_snum students.snum%type,
+357  	     p_CallNum schClasses.callnum%type) as
+358  	     v_errors varchar2(1000);
+359  
+360  	 begin
+361  	     --num1
+362  	     check_snum(p_snum, v_errors); --check valid student number
+363  	     check_callnum(p_CallNum, v_errors); --check valid call number
+364  	     if (v_errors is null) then
+365  	     --num2
+366  		 notEnrolled(p_snum, p_callNum, v_errors);
+367  		 if (v_errors is null) then --checks to make sure was actually enrolled in course
+368  		     --num3
+369  		     alreadyGraded(p_snum, p_callnum, v_errors);
+370  		     if (v_errors is null) then
+371  			 dropCourse(p_snum, p_callnum, v_errors);
+372  		     else
+373  			 dbms_output.put_line(v_errors);
+374  		     end if;
+375  		 else
+376  		     dbms_output.put_line(v_errors);
+377  		 end if;
+378  	     else
+379  		 dbms_output.put_line(v_errors);
+380  	     end if;
+381  	 end;
+382  
+383  end enroll;
+384  /
 
 Package body created.
 
@@ -370,11 +416,15 @@ SQL> show errors;
 No errors.
 SQL> 
 SQL> begin
-  2  	 Enroll.dropme(101, 10110);
-  3  
-  4  end;
-  5  /
-already graded                                                                  
+  2  	 Enroll.dropme(107, 10110);
+  3  	 --update enrollments set grade = null where snum = 107 and callnum = 10110;
+  4  
+  5  end;
+  6  /
+waitlist count for course is 3                                                  
+trying to add... 109 10110                                                      
+trying to add... 110 10110                                                      
+trying to add... 102 10110                                                      
 
 PL/SQL procedure successfully completed.
 
