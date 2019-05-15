@@ -411,16 +411,17 @@ SQL> show errors;
 No errors.
 SQL> 
 SQL> begin
-  2  	 Enroll.dropme(107, 10110);
+  2  	 Enroll.addme(107, 10110, null);
   3  end;
   4  /
-Student 107 has been dropped from course 10110.                                 
-Trying to add 109 in course 10110...                                            
-RESERVED IS: 4                                                                  
-Successfully Enrolled 109 in course number 10110.                               
-They have been removed from the waitlist.                                       
+    Enroll.addme(107, 10110, null);
+                             *
+ERROR at line 2:
+ORA-06550: line 2, column 30: 
+PLS-00363: expression ' NULL' cannot be used as an assignment target 
+ORA-06550: line 2, column 5: 
+PL/SQL: Statement ignored 
 
-PL/SQL procedure successfully completed.
 
 SQL> 
 SQL> spool off;

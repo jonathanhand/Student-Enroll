@@ -1,0 +1,789 @@
+SQL> set echo on
+SQL> set serveroutput on
+SQL> --Jonathan Hand
+SQL> --IS 480
+SQL> --Final Project
+SQL> 
+SQL> /* ---------------
+>    Create table structure for IS 480 project
+SQL> 	--------------- */
+SQL> 
+SQL> drop table enrollments;
+
+Table dropped.
+
+SQL> drop table prereq;
+
+Table dropped.
+
+SQL> drop table waitlist;
+
+Table dropped.
+
+SQL> drop table schclasses;
+
+Table dropped.
+
+SQL> drop table courses;
+
+Table dropped.
+
+SQL> drop table students;
+
+Table dropped.
+
+SQL> drop table majors;
+
+Table dropped.
+
+SQL> 
+SQL> 
+SQL> -----
+SQL> -----
+SQL> 
+SQL> 
+SQL> create table MAJORS
+  2  	     (major varchar2(3) Primary key,
+  3  	     mdesc varchar2(30));
+
+Table created.
+
+SQL> insert into majors values ('ACC','Accounting');
+
+1 row created.
+
+SQL> insert into majors values ('FIN','Finance');
+
+1 row created.
+
+SQL> insert into majors values ('IS','Information Systems');
+
+1 row created.
+
+SQL> insert into majors values ('MKT','Marketing');
+
+1 row created.
+
+SQL> 
+SQL> create table STUDENTS
+  2  	     (snum varchar2(3) primary key,
+  3  	     sname varchar2(10),
+  4  	     standing number(1),
+  5  	     major varchar2(3) constraint fk_students_major references majors(major),
+  6  	     gpa number(2,1),
+  7  	     major_gpa number(2,1));
+
+Table created.
+
+SQL> 
+SQL> insert into students values ('101','Andy',3,'IS',2.8,3.2);
+
+1 row created.
+
+SQL> insert into students values ('102','Betty',2,null,3.2,null);
+
+1 row created.
+
+SQL> insert into students values ('103','Cindy',3,'IS',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('104','David',2,'FIN',3.3,3.0);
+
+1 row created.
+
+SQL> insert into students values ('105','Ellen',1,null,2.8,null);
+
+1 row created.
+
+SQL> insert into students values ('106','Frank',3,'MKT',3.1,2.9);
+
+1 row created.
+
+SQL> insert into students values ('107','Cindy',3,'IS',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('108','Frank',3,'IS',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('109','Betty',3,'MKT',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('110','Cindy',3,'IS',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('111','Frank',3,null,2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('112','Cindy',3,'FIN',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('113','Frank',3,'IS',2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('114','David',3,null,2.5,3.5);
+
+1 row created.
+
+SQL> insert into students values ('115','David',3,'IS',2.5,3.5);
+
+1 row created.
+
+SQL> 
+SQL> create table COURSES
+  2  	     (dept varchar2(3) constraint fk_courses_dept references majors(major),
+  3  	     cnum varchar2(3),
+  4  	     ctitle varchar2(30),
+  5  	     crhr number(3),
+  6  	     standing number(1),
+  7  	     primary key (dept,cnum));
+
+Table created.
+
+SQL> 
+SQL> insert into courses values ('IS','300','Intro to MIS',3,2);
+
+1 row created.
+
+SQL> insert into courses values ('IS','301','Business Communicatons',3,2);
+
+1 row created.
+
+SQL> insert into courses values ('IS','310','Statistics',3,2);
+
+1 row created.
+
+SQL> insert into courses values ('IS','340','Programming',3,3);
+
+1 row created.
+
+SQL> insert into courses values ('IS','380','Database',3,3);
+
+1 row created.
+
+SQL> insert into courses values ('IS','385','Systems',3,3);
+
+1 row created.
+
+SQL> insert into courses values ('IS','480','Adv Database',3,4);
+
+1 row created.
+
+SQL> 
+SQL> create table SCHCLASSES (
+  2  	     callnum number(5) primary key,
+  3  	     year number(4),
+  4  	     semester varchar2(3),
+  5  	     dept varchar2(3),
+  6  	     cnum varchar2(3),
+  7  	     section number(2),
+  8  	     capacity number(3));
+
+Table created.
+
+SQL> 
+SQL> alter table schclasses
+  2  	     add constraint fk_schclasses_dept_cnum foreign key
+  3  	     (dept, cnum) references courses (dept,cnum);
+
+Table altered.
+
+SQL> 
+SQL> insert into schclasses values (10110,2014,'Fa','IS','300',1,5);
+
+1 row created.
+
+SQL> insert into schclasses values (10115,2014,'Fa','IS','300',2,118);
+
+1 row created.
+
+SQL> insert into schclasses values (10120,2014,'Fa','IS','300',3,5);
+
+1 row created.
+
+SQL> insert into schclasses values (10125,2014,'Fa','IS','301',1,35);
+
+1 row created.
+
+SQL> insert into schclasses values (10130,2014,'Fa','IS','301',2,35);
+
+1 row created.
+
+SQL> insert into schclasses values (10135,2014,'Fa','IS','310',1,35);
+
+1 row created.
+
+SQL> insert into schclasses values (10140,2014,'Fa','IS','310',2,35);
+
+1 row created.
+
+SQL> insert into schclasses values (10145,2014,'Fa','IS','340',1,30);
+
+1 row created.
+
+SQL> insert into schclasses values (10150,2014,'Fa','IS','380',1,33);
+
+1 row created.
+
+SQL> insert into schclasses values (10155,2014,'Fa','IS','385',1,35);
+
+1 row created.
+
+SQL> insert into schclasses values (10160,2014,'Fa','IS','480',1,35);
+
+1 row created.
+
+SQL> 
+SQL> create table PREREQ
+  2  	     (dept varchar2(3),
+  3  	     cnum varchar2(3),
+  4  	     pdept varchar2(3),
+  5  	     pcnum varchar2(3),
+  6  	     primary key (dept, cnum, pdept, pcnum));
+
+Table created.
+
+SQL> alter table Prereq
+  2  	     add constraint fk_prereq_dept_cnum foreign key
+  3  	     (dept, cnum) references courses (dept,cnum);
+
+Table altered.
+
+SQL> alter table Prereq
+  2  	     add constraint fk_prereq_pdept_pcnum foreign key
+  3  	     (pdept, pcnum) references courses (dept,cnum);
+
+Table altered.
+
+SQL> 
+SQL> insert into prereq values ('IS','380','IS','300');
+
+1 row created.
+
+SQL> insert into prereq values ('IS','380','IS','301');
+
+1 row created.
+
+SQL> insert into prereq values ('IS','380','IS','310');
+
+1 row created.
+
+SQL> insert into prereq values ('IS','385','IS','310');
+
+1 row created.
+
+SQL> insert into prereq values ('IS','340','IS','300');
+
+1 row created.
+
+SQL> insert into prereq values ('IS','480','IS','380');
+
+1 row created.
+
+SQL> 
+SQL> create table ENROLLMENTS (
+  2  	     snum varchar2(3) constraint fk_enrollments_snum references students(snum),
+  3  	     callnum number(5) constraint fk_enrollments_callnum references schclasses(callnum),
+  4  	     grade varchar2(2),
+  5  	     primary key (snum, callnum));
+
+Table created.
+
+SQL> 
+SQL> insert into enrollments values (101,10110,'A');
+
+1 row created.
+
+SQL> insert into enrollments values (102,10125,null);
+
+1 row created.
+
+SQL> insert into enrollments values (103,10120,'A');
+
+1 row created.
+
+SQL> insert into enrollments values (101,10125,null);
+
+1 row created.
+
+SQL> insert into enrollments values (102,10130,null);
+
+1 row created.
+
+SQL> insert into enrollments values (104,10110,null);
+
+1 row created.
+
+SQL> insert into enrollments values (105,10110,null);
+
+1 row created.
+
+SQL> insert into enrollments values (106,10110,'B');
+
+1 row created.
+
+SQL> insert into enrollments values (107,10110,null);
+
+1 row created.
+
+SQL> insert into enrollments values (108,10110,'W');
+
+1 row created.
+
+SQL> insert into enrollments values (103,10125,null);
+
+1 row created.
+
+SQL> insert into enrollments values (104,10125,null);
+
+1 row created.
+
+SQL> insert into enrollments values (105,10130,null);
+
+1 row created.
+
+SQL> insert into enrollments values (104,10120,null);
+
+1 row created.
+
+SQL> insert into enrollments values (106,10120,null);
+
+1 row created.
+
+SQL> insert into enrollments values (107,10120,'B');
+
+1 row created.
+
+SQL> insert into enrollments values (108,10120,'C');
+
+1 row created.
+
+SQL> 
+SQL> create table WAITLIST (
+  2  	     snum varchar2(3) constraint fk_waitlist_snum references students(snum),
+  3  	     callnum number(5) constraint fk_waitlist_callnum references schclasses(callnum),
+  4  	     waitlistTime timestamp,
+  5  	     primary key (snum, callnum));
+
+Table created.
+
+SQL> insert into WAITLIST values (109, 10110, '14-MAY-19 06.08.52.332000 PM');
+
+1 row created.
+
+SQL> insert into WAITLIST values (102, 10110, '14-MAY-19 07.15.27.830000 PM');
+
+1 row created.
+
+SQL> insert into WAITLIST values (110, 10110, '14-MAY-19 06.24.17.298000 PM');
+
+1 row created.
+
+SQL> 
+SQL> commit;
+
+Commit complete.
+
+SQL> 
+SQL> ------------------------ENROLL PACKAGE------------------------------------------------------
+SQL> create or replace Package Enroll as
+  2  --just addme and drop me in spec
+  3  --procedure DropMe
+  4  
+  5  	 procedure AddMe
+  6  	     (p_snum students.snum%type,
+  7  	     p_CallNum schClasses.callnum%type,
+  8  	     p_errorMsg OUT varchar2);
+  9  	 procedure DropMe
+ 10  	     (p_snum students.snum%type,
+ 11  	     p_CallNum schClasses.callnum%type);
+ 12  
+ 13  end Enroll;
+ 14  /
+
+Package created.
+
+SQL> show errors;
+No errors.
+SQL> create or replace Package body Enroll as
+  2  -----------------------------------ADD ME PROCEDURES--------------------------------
+  3  	 procedure check_snum
+  4  	     (p_snum students.snum%type,
+  5  	     p_answer OUT varchar2) as --out keyword to let know being passed out of procedure
+  6  	     v_count number;
+  7  
+  8  	 begin
+  9  	     select count(snum) into v_count
+ 10  	     from students
+ 11  	     where snum = p_snum;
+ 12  	     if v_count = 0 then
+ 13  		 p_answer:= p_answer || 'Invalid Student Number, ';
+ 14  
+ 15  	     end if;
+ 16  	 end;
+ 17  
+ 18  	 PROCEDURE check_CALLNUM
+ 19  	     (p_callnum schclasses.callnum%type,
+ 20  	     p_answer IN OUT varchar2) as
+ 21  	     v_count number;
+ 22  
+ 23  	 begin
+ 24  	     select count(*) into v_count
+ 25  	     from schclasses
+ 26  	     where callnum = p_callnum;
+ 27  	     if v_count = 0 then
+ 28  		 p_answer := p_answer || 'Invalid Call Number, ';
+ 29  	     end if;
+ 30  	 end;
+ 31  
+ 32  	 procedure check_15hr
+ 33  	     (p_snum students.snum%type,
+ 34  	     p_CallNum schClasses.callnum%type, p_answer IN OUT varchar2) as
+ 35  	     v_stuStanding number;
+ 36  	     v_courseStanding number;
+ 37  	     v_creditEnrolled number;
+ 38  	     v_creditWant number;
+ 39  	 begin
+ 40  
+ 41  	     select nvl(sum(c.CRHR), 0) into v_creditEnrolled
+ 42  	     from courses c, enrollments e, schclasses s
+ 43  	     where c.dept=s.dept and c.cnum = s.cnum and e.callnum = s.callnum and e.snum = p_snum;
+ 44  
+ 45  	     select c.crhr into v_creditWant
+ 46  	     from courses c, schclasses s
+ 47  	     where p_callnum = s.callnum and c.dept=s.dept and c.cnum = s.cnum;
+ 48  
+ 49  	     if (v_creditEnrolled + v_creditWant) > 15 then
+ 50  		 p_answer := p_answer || 'Too many units to register, ';
+ 51  	     end if;
+ 52  	 end;
+ 53  
+ 54  	 procedure doubleEnrollment
+ 55  	     (p_snum students.snum%type,
+ 56  	     p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
+ 57  	     v_enrDept varchar2(10);
+ 58  	     v_enrCnum varchar2(10);
+ 59  
+ 60  	     cursor cur_class is
+ 61  		 select s.callNum, s.dept, s.cnum, s.section
+ 62  		 from schClasses s, enrollments e
+ 63  		 where e.snum = p_snum and s.callnum = e.callnum;
+ 64  
+ 65  	 begin
+ 66  	     select dept into v_enrDept
+ 67  	     from schClasses
+ 68  	     where callnum = p_callNum;
+ 69  
+ 70  	     select Cnum into v_enrCnum
+ 71  	     from schClasses
+ 72  	     where callnum = p_callNum;
+ 73  
+ 74  
+ 75  	     for eachClass in cur_class loop
+ 76  		 if (v_enrDept = eachClass.dept and v_enrCnum = eachClass.Cnum) then
+ 77  		     p_error := p_error || 'Enrolled in another section already, ';
+ 78  		     exit;
+ 79  		 end if;
+ 80  	     end loop;
+ 81  	 end;
+ 82  
+ 83  	 procedure repeatEnrollment
+ 84  	     (p_snum students.snum%type,
+ 85  	     p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
+ 86  
+ 87  	     cursor cur_enr is
+ 88  		 select s.callNum, e.snum
+ 89  		 from schClasses s, enrollments e
+ 90  		 where e.snum = p_snum and s.callnum = e.callNum;
+ 91  
+ 92  	 begin
+ 93  	     for eachEnr in cur_enr loop
+ 94  		 if (eachEnr.callNum = p_callNum) then
+ 95  		     p_error := p_error || 'Repeat Enrollment, ';
+ 96  		     exit;
+ 97  		 end if;
+ 98  	     end loop;
+ 99  	 end;
+100  
+101  	 --select standing from students, compare to course want to enroll standing
+102  	 --(join courses and schclasses)
+103  	 procedure standingRequirement
+104  	     (p_snum students.snum%type,
+105  	     p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
+106  	     v_stuStanding number(1);
+107  	     v_courseStanding number(1);
+108  
+109  	 begin
+110  	     select standing into v_stuStanding
+111  	     from students
+112  	     where students.snum = p_snum;
+113  
+114  	     select c.standing into v_courseStanding
+115  	     from courses c, schClasses sch
+116  	     where sch.callnum = p_callNum and sch.Dept = c.Dept and sch.Cnum = c.cNum;
+117  
+118  	     if v_stuStanding < v_courseStanding then
+119  		 p_error := p_error || 'Student standing too low, ';
+120  	     end if;
+121  	 end;
+122  
+123  	 procedure undeclaredMajor
+124  	     (p_snum students.snum%type,
+125  	     p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
+126  	     v_stuStanding number(1);
+127  	     v_stuMajor students.Major%type;
+128  
+129  	 begin
+130  	     select standing into v_stuStanding
+131  	     from students
+132  	     where students.snum = p_snum;
+133  
+134  	     select major into v_stuMajor
+135  	     from students
+136  	     where students.snum = p_snum;
+137  
+138  	     if (v_stuStanding >= 3) then
+139  		 if (v_stuMajor is null) then
+140  		     p_error := p_error || 'Need to declare major to enroll, ';
+141  		 end if;
+142  	     end if;
+143  
+144  	 end;
+145  
+146  	 procedure check_capacity
+147  	     (p_snum students.snum%type,
+148  	     p_callnum schClasses.callnum%type,
+149  	     p_answer IN OUT varchar2,
+150  	     p_full IN OUT boolean) AS
+151  	     v_capacity number(3);
+152  	     v_reservedG number(3);
+153  	     v_reservedN number(3);
+154  	     v_reserved number(3);
+155  
+156  	 begin
+157  	     select sch.capacity into v_capacity
+158  	     from schClasses sch
+159  	     where p_callnum = sch.callnum;
+160  
+161  	     select count(e.callnum) into v_reservedG
+162  	     from enrollments e, schClasses sch
+163  	     where sch.callnum = e.callnum and e.callnum = p_callnum and e.grade != 'W';
+164  
+165  	     select count(e.callnum) into v_reservedN
+166  	     from enrollments e, schClasses sch
+167  	     where sch.callnum = e.callnum and e.callnum = p_callnum and e.grade is null;
+168  
+169  	     v_reserved := v_reservedG + v_reservedN;
+170  	     if (v_reserved >= v_capacity) then
+171  		 p_answer := p_answer || 'Class is full, ';
+172  		 p_full := true;
+173  	     end if;
+174  	 end;
+175  
+176  	 procedure checkWaitlist
+177  	     (p_snum students.snum%type,
+178  	     p_callnum schClasses.callnum%type,
+179  	     p_answer IN OUT varchar2,
+180  	     p_waitlisted IN OUT boolean) as
+181  	     v_onWaitList number(1);
+182  
+183  	 begin
+184  	     p_waitListed := false;
+185  	     select count(snum) into v_onWaitList
+186  	     from waitlist
+187  	     where snum = p_snum and callnum = p_callnum;
+188  
+189  	     if (v_onWaitList > 0) then
+190  		 p_waitlisted := true;
+191  		 dbms_output.put_line('Already on the waitlist for course number ' || p_callNum || '.');
+192  	     end if;
+193  	 end;
+194  
+195  	 procedure addToWaitList
+196  	     (p_snum students.snum%type,
+197  	     p_callnum schClasses.callnum%type) as
+198  	 begin
+199  	     insert into waitlist values (p_snum, p_callnum, (select current_timestamp from dual));
+200  	     dbms_output.put_line('Student number ' || p_snum || ' is now on the waiting list for class number ' || p_callNum || '.');
+201  	 end;
+202  
+203  
+204  ---------------------------ADD ME MAIN---------------------------------------------------
+205  	 procedure AddMe
+206  	 (p_snum students.snum%type,
+207  	 p_CallNum schClasses.callnum%type,
+208  	 p_errorMsg OUT varchar2) as
+209  	 v_errors varchar2(1000);
+210  	 v_full boolean;
+211  	 v_waitlisted boolean;
+212  
+213  	 begin
+214  	     --num1
+215  	     check_snum(p_snum, v_errors); --check valid student number
+216  	     check_callnum(p_CallNum, v_errors); --check valid call number
+217  	     if (v_errors is null) then
+218  		 --num2
+219  		 repeatEnrollment(p_snum, p_callnum, v_errors);
+220  		     --check enrollments if snum already enrolled in callnum (past or present)
+221  		 --num3
+222  		 doubleEnrollment(p_snum, p_callNum, v_errors);
+223  		 --num4
+224  		 check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
+225  		 --num5
+226  		     --select standing from students, compare to course want to enroll standing (join courses and schclasses)
+227  		 standingRequirement(p_snum, p_callNum, v_errors);
+228  		 --num6
+229  		 undeclaredMajor(p_snum, p_callNum, v_errors);
+230  		 if (v_errors is null) then
+231  			     --num7
+232  		 check_capacity(p_snum, p_callnum, v_errors, v_full);
+233  		     if(v_full = true) then
+234  			 --num8
+235  			 checkWaitlist(p_snum, p_callnum, v_errors, v_waitlisted);
+236  			 if (v_waitlisted = false) then
+237  			     addToWaitList(p_snum, p_callNum);
+238  			 end if;
+239  		     else
+240  			 insert into enrollments (snum, callnum) values (p_snum, p_callnum);
+241  			 dbms_output.put_line('Successfully Enrolled ' || p_snum || ' in course number ' || p_callnum || '.');
+242  			 commit;
+243  		     end if;
+244  		 else
+245  		     dbms_output.put_line(v_errors);
+246  		 end if;
+247  	     else --num1: if snum and/or callnum invalid, skip to here
+248  		 dbms_output.put_line(v_errors); --skip rest of program and print errors
+249  	     end if;
+250  	 end;
+251  ----------------------DROP ME PROCEDURES-----------------------------------------------------------
+252  	 procedure notEnrolled
+253  	     (p_snum students.snum%type,
+254  	     p_callnum schClasses.callnum%type,
+255  	     p_errors IN OUT varchar2) as
+256  	     v_enrollmentCount number(1);
+257  	 begin
+258  	     select count(snum) into v_enrollmentCount
+259  	     from enrollments
+260  	     where snum = p_snum and callNum = p_callNum; --add to not count 'W', because means dropped, so they can retake
+261  
+262  	     if (v_enrollmentCount != 1) then
+263  		 p_errors := p_errors || 'Not currently enrolled in that course, ';
+264  	     end if;
+265  	 end;
+266  
+267  	 procedure alreadyGraded
+268  	     (p_snum students.snum%type,
+269  	     p_callnum schClasses.callnum%type,
+270  	     p_errors IN OUT varchar2) as
+271  	     v_grade varchar(1);
+272  
+273  	 begin
+274  	     select grade into v_grade
+275  	     from enrollments
+276  	     where snum = p_snum and callnum = p_callnum;
+277  
+278  	     if (v_grade is not null) then
+279  	     p_errors := p_errors || 'Grade already inputted cannot drop, ';
+280  	     end if;
+281  	 end;
+282  
+283  	 procedure dropCourse
+284  	     (p_snum students.snum%type,
+285  	     p_callnum schClasses.callnum%type,
+286  	     p_errors IN OUT varchar2) as
+287  	     v_waitListNum number(3);
+288  	     v_addError varchar2(1000);
+289  
+290  		 cursor cur_waitlist is
+291  		 select w.snum, w.callnum, waitlistTime
+292  		 from waitlist w
+293  		 where w.callnum = p_callnum
+294  		 order by waitlistTime asc;
+295  
+296  	 begin
+297  	     update enrollments
+298  	     set grade = 'W'
+299  	     where snum = p_snum and callnum = p_callnum;
+300  	     dbms_output.put_line('Student ' || p_snum || ' has been dropped from course ' || p_callnum || '.');
+301  	     commit;
+302  
+303  	     select count(snum) into v_waitlistNum
+304  	     from waitlist
+305  	     where callnum = p_callnum;
+306  
+307  	     if (v_waitlistNum > 0) then
+308  		 for student in cur_waitList loop
+309  		     v_addError := null;
+310  		     dbms_output.put_line('Trying to add ' || student.snum || ' in course ' || student.callnum || '...');
+311  		     addme(student.snum,student.callnum, v_addError);
+312  		     if (v_addError is null) then
+313  			 delete
+314  			 from waitlist
+315  			 where snum = student.snum and callnum = student.callnum;
+316  			 dbms_output.put_line('They have been removed from the waitlist.');
+317  		       exit;
+318  		     end if;
+319  		 end loop;
+320  	     end if;
+321  	 end;
+322  ---------------------------DROP ME MAIN--------------------------------------------
+323  	 procedure DropMe
+324  	     (p_snum students.snum%type,
+325  	     p_CallNum schClasses.callnum%type) as
+326  	     v_errors varchar2(1000);
+327  
+328  	 begin
+329  	     --num1
+330  	     check_snum(p_snum, v_errors); --check valid student number
+331  	     check_callnum(p_CallNum, v_errors); --check valid call number
+332  	     if (v_errors is null) then
+333  	     --num2
+334  		 notEnrolled(p_snum, p_callNum, v_errors);
+335  		 if (v_errors is null) then --checks to make sure was actually enrolled in course
+336  		     --num3
+337  		     alreadyGraded(p_snum, p_callnum, v_errors);
+338  		     if (v_errors is null) then
+339  			 dropCourse(p_snum, p_callnum, v_errors);
+340  		     else
+341  			 dbms_output.put_line(v_errors);
+342  		     end if;
+343  		 else
+344  		     dbms_output.put_line(v_errors);
+345  		 end if;
+346  	     else
+347  		 dbms_output.put_line(v_errors);
+348  	     end if;
+349  	 end;
+350  
+351  end enroll;
+352  /
+
+Package body created.
+
+SQL> show errors;
+No errors.
+SQL> 
+SQL> declare
+  2  	     v_error varchar2(1000);
+  3  begin
+  4  	     Enroll.addme(107, 10110, v_error);
+  5  	 Enroll.dropme(107, 10110);
+  6  end;
+  7  /
+Repeat Enrollment, Enrolled in another section already,                         
+Student 107 has been dropped from course 10110.                                 
+Trying to add 109 in course 10110...                                            
+Successfully Enrolled 109 in course number 10110.                               
+They have been removed from the waitlist.                                       
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> spool off;

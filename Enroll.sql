@@ -405,7 +405,7 @@ end enroll;
 show errors;
 
 begin
-    Enroll.dropme(107, 10110);
+    Enroll.addme(107, 10110, null);
 end;
 /
 
