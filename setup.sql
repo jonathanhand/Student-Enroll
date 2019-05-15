@@ -1,3 +1,4 @@
+--start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\setup.sql'
 set echo on
 
 /* ---------------
@@ -131,6 +132,13 @@ insert into enrollments values (104,10120,null);
 insert into enrollments values (106,10120,null);
 insert into enrollments values (107,10120,'B');
 insert into enrollments values (108,10120,'C');
+
+create table WAITLIST (
+	snum varchar2(3) constraint fk_waitlist_snum references students(snum),
+	callnum number(5) constraint fk_waitlist_callnum references schclasses(callnum),
+	waitlistTime timestamp,
+	primary key (snum, callnum));
+insert into WAITLIST values (109, 10110, (select current_timestamp from dual));
 
 commit;
 

@@ -203,12 +203,39 @@ create or replace Package body Enroll as
         end if;
     end;
     
+    procedure checkWaitlist
+        (p_snum students.snum%type,
+        p_callnum schClasses.callnum%type,
+        p_answer IN OUT varchar2,
+        p_waitlisted IN OUT boolean) as
+        v_onWaitList number(1);
+
+    begin
+        p_waitListed := false;
+        select count(snum) into v_onWaitList
+        from waitlist
+        where snum = p_snum and callnum = p_callnum;
+
+        if (v_onWaitList > 0) then
+            p_waitlisted := true;
+            dbms_output.put_line('Already on the waitlist for course number ' || p_callNum || '.');
+        end if;
+    end;
+
+    procedure addToWaitList
+        (p_snum students.snum%type,
+        p_callnum schClasses.callnum%type) as
+    begin
+        insert into waitlist values (p_snum, p_callnum, (select current_timestamp from dual));
+        dbms_output.put_line('Student number ' || p_snum || ' is now on the waiting list for class number ' || p_callNum || '.');
+    end;
 
     procedure AddMe
     (p_snum students.snum%type,
     p_CallNum schClasses.callnum%type) as
     v_errors varchar2(1000);
     v_full boolean;
+    v_waitlisted boolean;
 
     begin
         --num1
@@ -238,11 +265,10 @@ create or replace Package body Enroll as
                         --error
             --num7
             --if (v_errors is null) then
-            check_capacity(p_snum, p_callnum, v_errors, v_full);
-            if (v_full = true) then
+            
+ 
             --TODO: num8
-                --if v_errors is null then
-                    --if class capacity full
+
                         --check if stunum on waitlist table
                         --num9
                             --if not on waitlist with that call num then
@@ -250,16 +276,24 @@ create or replace Package body Enroll as
                                 --print stu num is now on wait list
                             --else
                                 --print you're already waitlisted for that 
-                dbms_output.put_line('Waitlist!');
-            end if;
+
             --end if;
            -- if (v_errors is not null) then
                 --checkWaitlist 
            
             if (v_errors is null) then
-                insert into enrollments (snum, callnum) values (p_snum, p_callnum);
-                dbms_output.put_line('Successfully Enrolled!');
-                commit;
+            check_capacity(p_snum, p_callnum, v_errors, v_full);
+                if(v_full = true) then
+                    --num8
+                    checkWaitlist(p_snum, p_callnum, v_errors, v_waitlisted);
+                    if (v_waitlisted = false) then
+                        addToWaitList(p_snum, p_callNum);
+                    end if;
+                else
+                    insert into enrollments (snum, callnum) values (p_snum, p_callnum);
+                    dbms_output.put_line('Successfully Enrolled!');
+                    commit;
+                end if;
             else
                 dbms_output.put_line(v_errors);
             end if;
@@ -274,7 +308,6 @@ show errors;
 
 begin
     Enroll.addme(110, 10110);
-    Enroll.addme(106, 10115);
 
 end;
 /
