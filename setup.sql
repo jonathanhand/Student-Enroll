@@ -1,5 +1,4 @@
 --start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\setup.sql'
-spool 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\setup.txt'
 set echo on
 set serveroutput on
 --Jonathan Hand
@@ -17,10 +16,6 @@ drop table schclasses;
 drop table courses;
 drop table students;
 drop table majors;
-
-
------
------
 
 
 create table MAJORS
@@ -127,6 +122,9 @@ insert into enrollments values (102,10125,null);
 insert into enrollments values (103,10120,'A');
 insert into enrollments values (101,10125,null);
 insert into enrollments values (102,10130,null);
+insert into enrollments values (102,10160,null);
+insert into enrollments values (102,10155,null);
+insert into enrollments values (102,10145,null);
 insert into enrollments values (104,10110,null);
 insert into enrollments values (105,10110,null);
 insert into enrollments values (106,10110,'B');
@@ -145,7 +143,6 @@ create table WAITLIST (
 	callnum number(5) constraint fk_waitlist_callnum references schclasses(callnum),
 	waitlistTime timestamp,
 	primary key (snum, callnum));
-insert into WAITLIST values (109, 10110, '14-MAY-19 06.08.52.332000 PM');
 insert into WAITLIST values (102, 10110, '14-MAY-19 07.15.27.830000 PM');
 insert into WAITLIST values (110, 10110, '14-MAY-19 06.24.17.298000 PM');
 
@@ -526,5 +523,24 @@ create or replace Package body Enroll as
 end enroll;
 /
 show errors;
+declare
+err varchar(1000);
+begin
+	enroll.addme(100, 10110, err);
+	enroll.addme(101, 50000, err);
+	enroll.addme(101, 10120, err);
+	enroll.addme(101, 10110, err);
+	enroll.addme(102, 10140, err);
+	enroll.addme(105, 10160, err);
+	enroll.addme(114, 10110, err);
+	enroll.addme(109, 10110, err);
+	enroll.addme(109, 10110, err);
+	enroll.addme(115, 10125, err);
 
-spool off;
+	enroll.dropme(100, 10110);
+	enroll.dropme(101, 50000);
+	enroll.dropme(104, 10130);
+	enroll.dropme(107, 10110);
+end;
+/
+select * from enrollments;
