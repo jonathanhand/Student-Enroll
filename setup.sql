@@ -153,8 +153,7 @@ commit;
 
 ------------------------ENROLL PACKAGE------------------------------------------------------
 create or replace Package Enroll as
---just addme and drop me in spec
---procedure DropMe
+--addme and dropme in spec
 
     procedure AddMe
         (p_snum students.snum%type,
@@ -167,11 +166,13 @@ create or replace Package Enroll as
 end Enroll;
 /
 show errors;
+
 create or replace Package body Enroll as
 -----------------------------------ADD ME PROCEDURES--------------------------------
     procedure check_snum
+	--checks to make sure snum is valid
         (p_snum students.snum%type,
-        p_answer OUT varchar2) as --out keyword to let know being passed out of procedure
+        p_answer OUT varchar2) as 
         v_count number;
 
     begin
@@ -185,6 +186,7 @@ create or replace Package body Enroll as
     end;
 
     PROCEDURE check_CALLNUM
+	--checks to make sure callnum is valid
         (p_callnum schclasses.callnum%type,
         p_answer IN OUT varchar2) as
         v_count number;
@@ -199,6 +201,7 @@ create or replace Package body Enroll as
     end;
 
     procedure check_15hr
+	--checks to make sure student will not exceed 15 crhr
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type, p_answer IN OUT varchar2) as 
         v_stuStanding number;
@@ -221,6 +224,7 @@ create or replace Package body Enroll as
     end;
 
     procedure doubleEnrollment
+	--makes sure not enrolled in another section already
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
         v_enrDept varchar2(10);
@@ -250,6 +254,7 @@ create or replace Package body Enroll as
     end;
 
     procedure repeatEnrollment
+	--makes sure not enrolled in same callnum already
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
         
@@ -267,9 +272,8 @@ create or replace Package body Enroll as
         end loop;
     end;
 
-    --select standing from students, compare to course want to enroll standing 
-    --(join courses and schclasses)
     procedure standingRequirement
+	--checks standing, makes sure high enough standing to take course
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
         v_stuStanding number(1);
@@ -290,6 +294,7 @@ create or replace Package body Enroll as
     end;
 
     procedure undeclaredMajor
+	--checks to see if major is undeclared. If standing 3+ then cannot enroll as undeclared
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type, p_error IN OUT varchar2) as
         v_stuStanding number(1);
@@ -313,6 +318,7 @@ create or replace Package body Enroll as
     end;
 
     procedure check_capacity
+	--checks to see if class is full
         (p_snum students.snum%type,
         p_callnum schClasses.callnum%type,
         p_answer IN OUT varchar2,
@@ -343,6 +349,7 @@ create or replace Package body Enroll as
     end;
     
     procedure checkWaitlist
+	--checks to see if snum is already waitlisted for that callnum
         (p_snum students.snum%type,
         p_callnum schClasses.callnum%type,
         p_answer IN OUT varchar2,
@@ -362,6 +369,7 @@ create or replace Package body Enroll as
     end;
 
     procedure addToWaitList
+	--adds student to waitlist
         (p_snum students.snum%type,
         p_callnum schClasses.callnum%type) as
     begin
@@ -386,26 +394,24 @@ create or replace Package body Enroll as
         if (v_errors is null) then
             --num2
             repeatEnrollment(p_snum, p_callnum, v_errors);
-                --check enrollments if snum already enrolled in callnum (past or present)
             --num3
             doubleEnrollment(p_snum, p_callNum, v_errors);
             --num4
-            check_15hr(p_snum, p_callNum, v_errors); --check enrolling will not exceed 15 credits for student
+            check_15hr(p_snum, p_callNum, v_errors);
             --num5
-                --select standing from students, compare to course want to enroll standing (join courses and schclasses)
             standingRequirement(p_snum, p_callNum, v_errors);
             --num6
             undeclaredMajor(p_snum, p_callNum, v_errors);
             if (v_errors is null) then
 			--num7
-            check_capacity(p_snum, p_callnum, v_errors, v_full);
-                if(v_full = true) then
+            check_capacity(p_snum, p_callnum, v_errors, v_full); --if no errors can enroll, so check if class full
+                if(v_full = true) then --if class is full
                     --num8
-                    checkWaitlist(p_snum, p_callnum, v_errors, v_waitlisted);
-                    if (v_waitlisted = false) then
+                    checkWaitlist(p_snum, p_callnum, v_errors, v_waitlisted); --check if already waitlisted
+                    if (v_waitlisted = false) then --if not already waitlisted for class then
                         addToWaitList(p_snum, p_callNum);
                     end if;
-                else
+                else --if not full, then can enroll student
                     insert into enrollments (snum, callnum) values (p_snum, p_callnum);
                     dbms_output.put_line('Successfully Enrolled ' || p_snum || ' in course number ' || p_callnum || '.');
                     commit;
@@ -520,13 +526,5 @@ create or replace Package body Enroll as
 end enroll;
 /
 show errors;
-
-declare
-	v_error varchar2(1000);
-begin
-	Enroll.addme(107, 10110, v_error);
-    Enroll.dropme(107, 10110);
-end;
-/
 
 spool off;
