@@ -48,29 +48,6 @@ create or replace Package body Enroll as
             p_answer := p_answer || 'Invalid Call Number, ';
         end if;
     end;
-    
-
-    procedure check_capacity
-        (p_snum students.snum%type,
-        p_callnum schClasses.callnum%type,
-        p_answer IN OUT varchar2) AS
-        v_capacity number(3);
-        v_reserved number(3);
-
-    begin
-        select sch.capacity into v_capacity 
-        from schClasses sch 
-        where p_callnum = sch.callnum;
-        
-        select count(e.callnum) into v_reserved
-        from enrollments e, schClasses sch
-        where sch.callnum = e.callnum and e.callnum = p_callnum;
-
-        if (v_capacity <= v_reserved) then
-            p_answer := p_answer || 'Class is full, ';
-        end if;
-    end;
-    
 
     procedure check_15hr
         (p_snum students.snum%type,
@@ -195,10 +172,43 @@ create or replace Package body Enroll as
 
     end;
 
+    procedure check_capacity
+        (p_snum students.snum%type,
+        p_callnum schClasses.callnum%type,
+        p_answer IN OUT varchar2,
+        p_full IN OUT boolean) AS
+        v_capacity number(3);
+        v_reservedG number(3);
+        v_reservedN number(3);
+        v_reserved number(3);
+
+    begin
+        select sch.capacity into v_capacity 
+        from schClasses sch 
+        where p_callnum = sch.callnum;
+        
+        select count(e.callnum) into v_reservedG
+        from enrollments e, schClasses sch
+        where sch.callnum = e.callnum and e.callnum = p_callnum and e.grade != 'W';
+
+        select count(e.callnum) into v_reservedN
+        from enrollments e, schClasses sch
+        where sch.callnum = e.callnum and e.callnum = p_callnum and e.grade is null;
+
+        v_reserved := v_reservedG + v_reservedN;
+
+        if (v_reserved >= v_capacity) then
+            p_answer := p_answer || 'Class is full, ';
+            p_full := true;
+        end if;
+    end;
+    
+
     procedure AddMe
     (p_snum students.snum%type,
     p_CallNum schClasses.callnum%type) as
     v_errors varchar2(1000);
+    v_full boolean;
 
     begin
         --num1
@@ -226,8 +236,10 @@ create or replace Package body Enroll as
                     --check students.major not null
                     --if major null
                         --error
-            --TODO: num7
-            check_capacity(p_snum, p_callnum, v_errors);
+            --num7
+            --if (v_errors is null) then
+            check_capacity(p_snum, p_callnum, v_errors, v_full);
+            if (v_full = true) then
             --TODO: num8
                 --if v_errors is null then
                     --if class capacity full
@@ -238,6 +250,12 @@ create or replace Package body Enroll as
                                 --print stu num is now on wait list
                             --else
                                 --print you're already waitlisted for that 
+                dbms_output.put_line('Waitlist!');
+            end if;
+            --end if;
+           -- if (v_errors is not null) then
+                --checkWaitlist 
+           
             if (v_errors is null) then
                 insert into enrollments (snum, callnum) values (p_snum, p_callnum);
                 dbms_output.put_line('Successfully Enrolled!');

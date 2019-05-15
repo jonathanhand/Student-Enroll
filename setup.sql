@@ -115,7 +115,7 @@ create table ENROLLMENTS (
 	primary key (snum, callnum));
 
 insert into enrollments values (101,10110,'A');
-insert into enrollments values (102,10110,null);
+insert into enrollments values (102,10125,null);
 insert into enrollments values (103,10120,'A');
 insert into enrollments values (101,10125,null);
 insert into enrollments values (102,10130,null);
@@ -124,9 +124,9 @@ insert into enrollments values (105,10110,null);
 insert into enrollments values (106,10110,'W');
 insert into enrollments values (107,10110,null);
 insert into enrollments values (108,10110,null);
-insert into enrollments values (101,10120,null);
-insert into enrollments values (102,10120,null);
-insert into enrollments values (105,10120,null);
+insert into enrollments values (103,10125,null);
+insert into enrollments values (104,10125,null);
+insert into enrollments values (105,10130,null);
 insert into enrollments values (104,10120,null);
 insert into enrollments values (106,10120,null);
 insert into enrollments values (107,10120,'B');
