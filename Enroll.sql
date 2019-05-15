@@ -62,16 +62,7 @@ create or replace Package body Enroll as
         v_creditEnrolled number;
         v_creditWant number;
     begin
-    /*
-    --this is for comparing standing TODO: Take out later
-        select standing into v_stuStanding
-        from students
-        where sNum = p_snum;
 
-        select standing into v_courseStanding
-        from schclasses s, courses c
-        where p_callNum = s.callnum and c.dept=s.dept and c.cnum = s.cnum;
-*/
         select nvl(sum(c.CRHR), 0) into v_creditEnrolled
         from courses c, enrollments e, schclasses s
         where c.dept=s.dept and c.cnum = s.cnum and e.callnum = s.callnum and e.snum = p_snum;
@@ -201,7 +192,7 @@ create or replace Package body Enroll as
         where sch.callnum = e.callnum and e.callnum = p_callnum and e.grade is null;
 
         v_reserved := v_reservedG + v_reservedN;
-
+        dbms_output.put_line('RESERVED IS: ' || v_reserved);
         if (v_reserved >= v_capacity) then
             p_answer := p_answer || 'Class is full, ';
             p_full := true;
@@ -299,7 +290,7 @@ create or replace Package body Enroll as
                     end if;
                 else
                     insert into enrollments (snum, callnum) values (p_snum, p_callnum);
-                    dbms_output.put_line('Successfully Enrolled!');
+                    dbms_output.put_line('Successfully Enrolled ' || p_snum || ' in course number ' || p_callnum || '.');
                     commit;
                 end if;
             else
@@ -355,24 +346,28 @@ create or replace Package body Enroll as
             order by waitlistTime asc;
 
     begin
-        --update enrollments
-        --set grade = 'W'
-        --where snum = p_snum and callnum = p_callnum;
-        --dbms_output.put_line('grade updated');
+        update enrollments
+        set grade = 'W'
+        where snum = p_snum and callnum = p_callnum;
+        dbms_output.put_line('Student ' || p_snum || ' has been dropped from course ' || p_callnum || '.');
+        commit;
 
         select count(snum) into v_waitlistNum
         from waitlist
         where callnum = p_callnum;
-        dbms_output.put_line('waitlist count for course is ' || v_waitListNum);
 
         if (v_waitlistNum > 0) then
             for student in cur_waitList loop
-                --v_addError := null;
-                dbms_output.put_line('trying to add... ' || student.snum || ' ' || student.callnum);
-                --addme(student.snum,student.callnum, v_addError);
-               -- if (v_addError is null) then
-                  -- exit; 
-                --end if;
+                v_addError := null;
+                dbms_output.put_line('Trying to add ' || student.snum || ' in course ' || student.callnum || '...');
+                addme(student.snum,student.callnum, v_addError);
+                if (v_addError is null) then
+                    delete 
+                    from waitlist
+                    where snum = student.snum and callnum = student.callnum;
+                    dbms_output.put_line('They have been removed from the waitlist.');
+                  exit; 
+                end if;
             end loop;
         end if;
     end;
@@ -411,10 +406,13 @@ show errors;
 
 begin
     Enroll.dropme(107, 10110);
-    --update enrollments set grade = null where snum = 107 and callnum = 10110;
-
 end;
 /
 
 spool off;
---start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\enroll.sql'
+/*
+start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\setup.sql'
+update enrollments set grade = null where snum = 107 and callnum = 10110;
+commit;
+start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\enroll.sql'
+*/
