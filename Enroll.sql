@@ -15,11 +15,15 @@ create or replace Package Enroll as
     procedure AddMe
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type);
+    procedure DropMe
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type);
 
 end Enroll;
 /
 show errors;
 create or replace Package body Enroll as
+-----------------------------------ADD ME PROCEDURES--------------------------------
     procedure check_snum
         (p_snum students.snum%type,
         p_answer IN OUT varchar2) as --out keyword to let know being passed out of procedure
@@ -230,6 +234,8 @@ create or replace Package body Enroll as
         dbms_output.put_line('Student number ' || p_snum || ' is now on the waiting list for class number ' || p_callNum || '.');
     end;
 
+
+---------------------------ADD ME MAIN---------------------------------------------------
     procedure AddMe
     (p_snum students.snum%type,
     p_CallNum schClasses.callnum%type) as
@@ -301,13 +307,63 @@ create or replace Package body Enroll as
             dbms_output.put_line(v_errors); --skip rest of program and print errors
         end if;
     end;
+----------------------DROP ME PROCEDURES-----------------------------------------------------------
+    procedure notEnrolled
+        (p_snum students.snum%type,
+        p_callnum schClasses.callnum%type,
+        p_errors IN OUT varchar2) as 
+        v_enrollmentCount number(1);
+    begin
+        select count(snum) into v_enrollmentCount
+        from enrollments
+        where snum = p_snum and callNum = p_callNum; --add to not count 'W', because means dropped, so they can retake
+
+        if (v_enrollmentCount != 1) then
+            p_errors := p_errors || 'Not currently enrolled in that course, ';
+        end if;
+    end;
+
+    procedure alreadyGraded
+        (p_snum students.snum%type,
+        p_callnum schClasses.callnum%type,
+        p_errors IN OUT varchar2) as 
+        v_grade varchar(1);
+
+    begin
+        select grade into v_grade
+        from enrollments
+        where snum = p_snum and callnum = p_callnum;
+
+        if (v_grade is not null) then
+        p_errors := p_errors || 'Grade already inputted cannot drop, ';
+        end if;
+    end;
+---------------------------DROP ME MAIN--------------------------------------------
+    procedure DropMe
+        (p_snum students.snum%type,
+        p_CallNum schClasses.callnum%type) as
+        v_errors varchar2(1000);
+    
+    begin
+        --num1
+        check_snum(p_snum, v_errors); --check valid student number
+        check_callnum(p_CallNum, v_errors); --check valid call number
+        if (v_errors is null) then
+        --num2
+            notEnrolled(p_snum, p_callNum, v_errors);
+            if (v_errors is null) then --checks to make sure was actually enrolled in course
+                --num3
+                alreadyGraded(p_snum, p_callnum, v_errors);
+            end if;
+        end if;
+    end;
     
 end enroll;
 /
 show errors;
 
 begin
-    Enroll.addme(110, 10110);
+    Enroll.dropme(101, 10110);
 
 end;
 /
