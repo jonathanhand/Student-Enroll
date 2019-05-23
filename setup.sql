@@ -125,7 +125,7 @@ create table audit_dropped (
     dropTime timestamp,
     primary key (snum, callnum)
 );
-/*
+
 create or replace TRIGGER beforeDropStudent
     after update on enrollments
     for each row
@@ -135,7 +135,7 @@ begin
         dbms_output.put_line('adding student to audit table');
     end if;
 end; 
-*/
+/
 /*
 insert into enrollments values (101,10110,'A');
 insert into enrollments values (102,10125,null);
