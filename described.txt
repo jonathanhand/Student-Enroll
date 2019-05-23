@@ -1,0 +1,59 @@
+SQL> describe schclasses;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ CALLNUM                                   NOT NULL NUMBER(5)
+ YEAR                                               NUMBER(4)
+ SEMESTER                                           VARCHAR2(3)
+ DEPT                                               VARCHAR2(3)
+ CNUM                                               VARCHAR2(3)
+ SECTION                                            NUMBER(2)
+ CAPACITY                                           NUMBER(3)
+
+SQL> describe courses;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ DEPT                                      NOT NULL VARCHAR2(3)
+ CNUM                                      NOT NULL VARCHAR2(3)
+ CTITLE                                             VARCHAR2(30)
+ CRHR                                               NUMBER(3)
+ STANDING                                           NUMBER(1)
+
+SQL> describe waitlist;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SNUM                                      NOT NULL VARCHAR2(3)
+ CALLNUM                                   NOT NULL NUMBER(5)
+ WAITLISTTIME                                       TIMESTAMP(6)
+
+SQL> describe majors;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ MAJOR                                     NOT NULL VARCHAR2(3)
+ MDESC                                              VARCHAR2(30)
+
+SQL> describe prereq;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ DEPT                                      NOT NULL VARCHAR2(3)
+ CNUM                                      NOT NULL VARCHAR2(3)
+ PDEPT                                     NOT NULL VARCHAR2(3)
+ PCNUM                                     NOT NULL VARCHAR2(3)
+
+SQL> describe enrollments;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SNUM                                      NOT NULL VARCHAR2(3)
+ CALLNUM                                   NOT NULL NUMBER(5)
+ GRADE                                              VARCHAR2(2)
+
+SQL> describe students;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SNUM                                      NOT NULL VARCHAR2(3)
+ SNAME                                              VARCHAR2(10)
+ STANDING                                           NUMBER(1)
+ MAJOR                                              VARCHAR2(3)
+ GPA                                                NUMBER(2,1)
+ MAJOR_GPA                                          NUMBER(2,1)
+
+SQL> spool off;

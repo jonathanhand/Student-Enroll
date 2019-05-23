@@ -1,14 +1,15 @@
---start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\setup.sql'
 set echo on
 set serveroutput on
 --Jonathan Hand
 --IS 480
 --Final Project
 
+--start 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\setup.sql'
+
 /* ---------------
    Create table structure for IS 480 project
    --------------- */
-
+drop table audit_dropped;
 drop table enrollments;
 drop table prereq;
 drop table waitlist;
@@ -58,7 +59,7 @@ create table COURSES
 	standing number(1),
 	primary key (dept,cnum));
 
-insert into courses values ('IS','300','Intro to MIS',3,2);
+insert into courses values ('IS','300','Intro to MIS',3,1);
 insert into courses values ('IS','301','Business Communicatons',3,2);
 insert into courses values ('IS','310','Statistics',3,2);
 insert into courses values ('IS','340','Programming',3,3);
@@ -117,6 +118,25 @@ create table ENROLLMENTS (
 	grade varchar2(2),
 	primary key (snum, callnum));
 
+create table audit_dropped (
+    snum varchar2(3) constraint fk_auditdropped_snum references students(snum),
+	callnum number(5) constraint fk_auditdropped_callnum references schclasses(callnum),
+    oldGrade varchar2(2),
+    dropTime timestamp,
+    primary key (snum, callnum)
+);
+/*
+create or replace TRIGGER beforeDropStudent
+    after update on enrollments
+    for each row
+begin
+    if :new.grade = 'W' then
+        insert into audit_dropped values (:old.snum, :old.callnum, :old.grade, (select current_timestamp from dual));
+        dbms_output.put_line('adding student to audit table');
+    end if;
+end; 
+*/
+/*
 insert into enrollments values (101,10110,'A');
 insert into enrollments values (102,10125,null);
 insert into enrollments values (103,10120,'A');
@@ -137,14 +157,13 @@ insert into enrollments values (104,10120,null);
 insert into enrollments values (106,10120,null);
 insert into enrollments values (107,10120,'B');
 insert into enrollments values (108,10120,'C');
-
+*/
+insert into audit_dropped values (110, 10110, 'B', (select current_timestamp from dual));
 create table WAITLIST (
 	snum varchar2(3) constraint fk_waitlist_snum references students(snum),
 	callnum number(5) constraint fk_waitlist_callnum references schclasses(callnum),
 	waitlistTime timestamp,
 	primary key (snum, callnum));
-insert into WAITLIST values (102, 10110, '14-MAY-19 07.15.27.830000 PM');
-insert into WAITLIST values (110, 10110, '14-MAY-19 06.24.17.298000 PM');
 
 commit;
 
@@ -155,7 +174,7 @@ create or replace Package Enroll as
     procedure AddMe
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type,
-        p_errorMsg OUT varchar2);
+        v_errors OUT varchar2);
     procedure DropMe
         (p_snum students.snum%type,
         p_CallNum schClasses.callnum%type);
@@ -352,12 +371,14 @@ create or replace Package body Enroll as
         p_answer IN OUT varchar2,
         p_waitlisted IN OUT boolean) as
         v_onWaitList number(1);
+        --v_currentWaitNum number(5);
 
     begin
         p_waitListed := false;
         select count(snum) into v_onWaitList
         from waitlist
-        where snum = p_snum and callnum = p_callnum;
+        where snum = p_snum and callnum = p_callnum 
+        order by waitlistTime desc;
 
         if (v_onWaitList > 0) then
             p_waitlisted := true;
@@ -379,8 +400,8 @@ create or replace Package body Enroll as
     procedure AddMe
     (p_snum students.snum%type,
     p_CallNum schClasses.callnum%type,
-    p_errorMsg OUT varchar2) as
-    v_errors varchar2(1000);
+    v_errors OUT varchar2) as
+    --v_errors varchar2(1000);
     v_full boolean;
     v_waitlisted boolean;
 
@@ -419,6 +440,7 @@ create or replace Package body Enroll as
         else --num1: if snum and/or callnum invalid, skip to here
             dbms_output.put_line(v_errors); --skip rest of program and print errors
         end if;
+
     end;
 ----------------------DROP ME PROCEDURES-----------------------------------------------------------
     procedure notEnrolled
@@ -523,9 +545,12 @@ create or replace Package body Enroll as
 end enroll;
 /
 show errors;
+
 declare
 err varchar(1000);
 begin
+/*
+    --checks all validators
 	enroll.addme(100, 10110, err);
 	enroll.addme(101, 50000, err);
 	enroll.addme(101, 10120, err);
@@ -541,6 +566,25 @@ begin
 	enroll.dropme(101, 50000);
 	enroll.dropme(104, 10130);
 	enroll.dropme(107, 10110);
+    */
+
+    --sophie test code
+    update schClasses set capacity = 2 where callnum = 10110;
+    
+    enroll.addme(101, 10110, err);
+    enroll.addme(102, 10110, err);
+    enroll.addme(103, 10110, err);
+    enroll.addme(104, 10110, err);
+----------------------------
+    enroll.addme(105, 10110, err);
+
+    enroll.addme(103, 10115, err);
+    enroll.dropme(102, 10110);
+    enroll.dropme(104, 10110);
 end;
 /
+select * from waitlist;
 select * from enrollments;
+select * from audit_dropped;
+
+--todo: change order of cursor in dropme

@@ -1,0 +1,9 @@
+spool 'C:\Users\handj\Desktop\Spring 2019 Work\IS480\final\described.txt'
+describe schclasses;
+describe courses;
+describe waitlist;
+describe majors;
+describe prereq;
+describe enrollments;
+describe students;
+spool off;
