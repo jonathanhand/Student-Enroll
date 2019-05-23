@@ -80,7 +80,7 @@ alter table schclasses
 	add constraint fk_schclasses_dept_cnum foreign key 
 	(dept, cnum) references courses (dept,cnum);
 
-insert into schclasses values (10110,2014,'Fa','IS','300',1,5);
+insert into schclasses values (10110,2014,'Fa','IS','300',2,5);
 insert into schclasses values (10115,2014,'Fa','IS','300',2,118);
 insert into schclasses values (10120,2014,'Fa','IS','300',3,5);
 insert into schclasses values (10125,2014,'Fa','IS','301',1,35);
@@ -136,7 +136,7 @@ begin
     end if;
 end; 
 /
-/*
+
 insert into enrollments values (101,10110,'A');
 insert into enrollments values (102,10125,null);
 insert into enrollments values (103,10120,'A');
@@ -157,7 +157,7 @@ insert into enrollments values (104,10120,null);
 insert into enrollments values (106,10120,null);
 insert into enrollments values (107,10120,'B');
 insert into enrollments values (108,10120,'C');
-*/
+
 insert into audit_dropped values (110, 10110, 'B', (select current_timestamp from dual));
 create table WAITLIST (
 	snum varchar2(3) constraint fk_waitlist_snum references students(snum),
@@ -508,6 +508,7 @@ create or replace Package body Enroll as
                     from waitlist
                     where snum = student.snum and callnum = student.callnum;
                     dbms_output.put_line('They have been removed from the waitlist.');
+                    commit;
                   exit; 
                 end if;
             end loop;
@@ -549,7 +550,7 @@ show errors;
 declare
 err varchar(1000);
 begin
-/*
+
     --checks all validators
 	enroll.addme(100, 10110, err);
 	enroll.addme(101, 50000, err);
@@ -566,8 +567,9 @@ begin
 	enroll.dropme(101, 50000);
 	enroll.dropme(104, 10130);
 	enroll.dropme(107, 10110);
-    */
-
+    enroll.dropme(105, 10110);
+    
+/*
     --sophie test code
     update schClasses set capacity = 2 where callnum = 10110;
     
@@ -581,6 +583,7 @@ begin
     enroll.addme(103, 10115, err);
     enroll.dropme(102, 10110);
     enroll.dropme(104, 10110);
+    */
 end;
 /
 select * from waitlist;
